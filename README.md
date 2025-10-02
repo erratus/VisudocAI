@@ -40,6 +40,12 @@ npm start
 ```
 The dev server opens http://localhost:3000. The frontend calls the backend at http://localhost:5000/api.
 
+for sample input
+![VisuDocAI Screenshot](./output/receipt.png)
+
+Sample output
+![VisuDocAI Screenshot](./output/image.png)
+
 ## Notes
 - Supported uploads: PDF, PNG, JPG (max 16MB by default)
 - First LLM call may be slow depending on provider latency.
