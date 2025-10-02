@@ -1,7 +1,7 @@
 import os
 import io
 from typing import Tuple, List
-from PIL import Image, ImageOps, ImageFilter
+from PIL import Image, ImageOps, ImageFilter, ImageOps as PILImageOps
 import pytesseract
 
 # Optional backends for PDF rendering
@@ -34,6 +34,11 @@ def detect_file_type(file_path: str) -> str:
 
 
 def preprocess_image(image: Image.Image) -> Image.Image:
+    # auto-orient using EXIF
+    try:
+        image = PILImageOps.exif_transpose(image)
+    except Exception:
+        pass
     # convert to grayscale, increase contrast, denoise
     img = ImageOps.grayscale(image)
     img = ImageOps.autocontrast(img)
@@ -45,7 +50,8 @@ def extract_text_from_image(file_path: str) -> str:
     try:
         with Image.open(file_path) as img:
             img = preprocess_image(img)
-            text = pytesseract.image_to_string(img)
+            # Use Tesseract configs to improve block detection
+            text = pytesseract.image_to_string(img, config='--psm 6')
             return text.strip()
     except Exception as e:
         raise RuntimeError(f"Image OCR failed: {e}")
@@ -55,14 +61,18 @@ def extract_text_from_pdf(file_path: str) -> str:
     try:
         texts: List[str] = []
         if fitz is not None:
-            # Render pages with PyMuPDF (no Poppler required)
+            # Try native text extraction first, then OCR for pages with no text
             doc = fitz.open(file_path)
             for page in doc:
+                native = page.get_text("text").strip()
+                if native:
+                    texts.append(native)
+                    continue
                 pix = page.get_pixmap(dpi=300)
                 img_bytes = pix.tobytes("png")
                 with Image.open(io.BytesIO(img_bytes)) as img:
                     proc = preprocess_image(img)
-                    texts.append(pytesseract.image_to_string(proc))
+                    texts.append(pytesseract.image_to_string(proc, config='--psm 6'))
         else:
             if _convert_from_path is None:
                 raise RuntimeError(
@@ -72,7 +82,7 @@ def extract_text_from_pdf(file_path: str) -> str:
             pages = _convert_from_path(file_path, dpi=300, poppler_path=POPPLER_PATH)
             for page in pages:
                 proc = preprocess_image(page)
-                texts.append(pytesseract.image_to_string(proc))
+                texts.append(pytesseract.image_to_string(proc, config='--psm 6'))
         return '\n\n'.join(t.strip() for t in texts if t and t.strip())
     except Exception as e:
         raise RuntimeError(f"PDF OCR failed: {e}")

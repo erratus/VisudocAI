@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 # Utils (to be implemented next)
 from utils.ocr import extract_text_from_pdf, extract_text_from_image, detect_file_type
 from utils.classifier import get_document_type
-from utils.ai_handler import answer_question, generate_summary
+from utils.ai_handler import answer_question, generate_summary, smart_answer
 
 ALLOWED_EXTENSIONS = {'.pdf', '.png', '.jpg', '.jpeg'}
 
@@ -124,7 +124,7 @@ def query():
     if not doc:
         return jsonify({"error": "Analyze the document first"}), 400
 
-    ans, score = answer_question(doc['text'], question)
+    ans, score = smart_answer(doc['text'], question, doc_type=doc.get('type'))
     return jsonify({"answer": ans, "confidence": score})
 
 @app.route('/api/summarize', methods=['POST'])

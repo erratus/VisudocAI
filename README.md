@@ -1,17 +1,16 @@
-# VisudocAI
+# VisuDocAI MVP
 
 Full-stack AI-powered document analysis web application.
 
 ## Tech Stack
-- Backend: Python Flask, Tesseract OCR (pytesseract), pdf2image, Pillow, HuggingFace Inference API
+- Backend: Python Flask, Tesseract OCR (pytesseract), pdf2image, Pillow, OpenRouter LLM API
 - Frontend: React 18, Axios, react-dropzone, Webpack
 
 ## Prerequisites (Windows)
 - Python 3.10+ (recommended)
 - Node.js 18+
 - Tesseract OCR installed (e.g., `C:\\Program Files\\Tesseract-OCR\\tesseract.exe`)
-- Poppler for Windows (download zip, e.g., `C:\\tools\\poppler-24.02.0\\Library\\bin`)
-- HuggingFace API key (free tier)
+- OpenRouter API key
 
 ## Setup
 
@@ -22,8 +21,8 @@ python -m venv venv
 venv\\Scripts\\activate
 pip install -r requirements.txt
 copy .env.example .env
-# Edit .env and set HUGGINGFACE_API_KEY
-# Optionally set TESSERACT_CMD and POPPLER_PATH if not on PATH
+# Edit .env and set OPENROUTER_API_KEY and OR_* models (defaults are auto)
+# Optionally set TESSERACT_CMD if not on PATH
 ```
 
 Run the API:
@@ -39,11 +38,11 @@ cd visudocai\\frontend
 npm install
 npm start
 ```
-The dev server proxies /api to http://localhost:5000 and opens http://localhost:3000
+The dev server opens http://localhost:3000. The frontend calls the backend at http://localhost:5000/api.
 
 ## Notes
 - Supported uploads: PDF, PNG, JPG (max 16MB by default)
-- First HuggingFace call may be slow (model cold start). We retry automatically.
+- First LLM call may be slow depending on provider latency.
 - OCR quality depends on input quality; scanning at 300 DPI recommended.
 
 ## Troubleshooting
@@ -55,5 +54,3 @@ The dev server proxies /api to http://localhost:5000 and opens http://localhost:
 - Backend: `python app.py`
 - Frontend: `npm start`
 
-## Security
-This MVP stores files and extracted text in-memory and on local disk for development only. Do not use in production as-is.
